@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Button, useToast } from "@chakra-ui/react";
+import { Button, useToast, Box } from "@chakra-ui/react";
 import update from "immutability-helper";
 import Card from "./Card";
+import Layout from "../Layout";
 import { nanoid } from "nanoid";
 
 function DragDrop({ Quiz }) {
@@ -31,7 +32,7 @@ function DragDrop({ Quiz }) {
     );
   }, []);
   // console.log("alphabet", alphabet);
-  
+
   const compare = () => {
     const userAnswer = alphabet
       .map((char) => char.char)
@@ -42,14 +43,16 @@ function DragDrop({ Quiz }) {
     const isCorrect = userAnswer === Quiz[currentIndex].answer;
 
     toast({
-      position: 'top',
-      title: isCorrect? "Correct":`Correct answer: ${Quiz[currentIndex].answer}`,
-      status: isCorrect? "success":"error",
+      position: "top",
+      title: isCorrect
+        ? "Correct"
+        : `Correct answer: ${Quiz[currentIndex].answer}`,
+      status: isCorrect ? "success" : "error",
       duration: 2000,
       isClosable: true,
     });
     setTimeout(() => {
-      if(currentIndex +1 < Quiz.length ){
+      if (currentIndex + 1 < Quiz.length) {
         setCurrentIndex((prevIndex) => prevIndex + 1);
         setCorrectAnswer([]);
         setAlphabet([]);
@@ -59,18 +62,28 @@ function DragDrop({ Quiz }) {
 
   return (
     <>
-      <div style={{ display: "flex", flexDirection: "row" }}>
-        {alphabet.map((item, index) => (
-          <Card
-            key={item.id}
-            id={item.id}
-            char={item.char}
-            moveWord={moveWord}
-            index={index}
-          />
-        ))}
-      </div>
-      <Button mt="20px" p="20px" onClick={compare}>Next</Button>
+      <Layout />
+      <Box
+        display="flex"
+        flexDir="column"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Box display="flex">
+          {alphabet.map((item, index) => (
+            <Card
+              key={item.id}
+              id={item.id}
+              char={item.char}
+              moveWord={moveWord}
+              index={index}
+            />
+          ))}
+        </Box>
+        <Button mt="20px" p="20px" onClick={compare}>
+          Next
+        </Button>
+      </Box>
     </>
   );
 }

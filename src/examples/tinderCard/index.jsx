@@ -1,11 +1,16 @@
 import React, { useState, useMemo, useRef } from "react";
 import TinderCard from "react-tinder-card";
-import { HiOutlineArrowNarrowLeft,HiOutlineArrowNarrowRight, HiOutlineRefresh } from "react-icons/hi";
+import { Box, Button, Text, Image } from "@chakra-ui/react";
+import {
+  HiOutlineArrowNarrowLeft,
+  HiOutlineArrowNarrowRight,
+  HiOutlineRefresh,
+} from "react-icons/hi";
+import Layout from "../Layout";
 
 const unknownWord = [];
 
-
-function Tindercard({Quiz}) {
+function Tindercard({ Quiz }) {
   const [currentIndex, setCurrentIndex] = useState(Quiz.length - 1);
   const [lastDirection, setLastDirection] = useState();
   const currentIndexRef = useRef(currentIndex);
@@ -19,15 +24,14 @@ function Tindercard({Quiz}) {
   );
 
   const updateCurrentIndex = (val) => {
-    setCurrentIndex(val)
-    currentIndexRef.current = val
-  }
-
+    setCurrentIndex(val);
+    currentIndexRef.current = val;
+  };
 
   const canSwipe = currentIndex >= 0;
   const swiped = (direction, name, index) => {
     setLastDirection(direction);
-    updateCurrentIndex(index - 1)
+    updateCurrentIndex(index - 1);
     if (direction === "right") {
       unknownWord.push(name);
     }
@@ -39,9 +43,9 @@ function Tindercard({Quiz}) {
     console.log(`${name} (${idx}) left the screen!`, currentIndexRef.current);
     console.log("childRefs[idx]", childRefs[idx]);
     currentIndexRef.current >= idx && childRefs[idx].current.restoreCard();
-    if(idx - 1 < 0){
-      alert("")
-    }
+    // if (idx - 1 < 0) {
+    //   alert("");
+    // }
   };
 
   const swipe = async (dir) => {
@@ -50,17 +54,17 @@ function Tindercard({Quiz}) {
     }
   };
 
-  const canGoBack = currentIndex < Quiz.length - 1
+  const canGoBack = currentIndex < Quiz.length - 1;
   const goBack = async () => {
-    if (!canGoBack) return
-    updateCurrentIndex(currentIndex + 1)
-    await childRefs[currentIndex + 1].current.restoreCard()
-    unknownWord.pop()
-    console.log(unknownWord)
-  }
+    if (!canGoBack) return;
+    updateCurrentIndex(currentIndex + 1);
+    await childRefs[currentIndex + 1].current.restoreCard();
+    unknownWord.pop();
+    console.log(unknownWord);
+  };
 
   return (
-    <div>
+    <>
       <link
         href="https://fonts.googleapis.com/css?family=Damion&display=swap"
         rel="stylesheet"
@@ -69,6 +73,8 @@ function Tindercard({Quiz}) {
         href="https://fonts.googleapis.com/css?family=Alatsi&display=swap"
         rel="stylesheet"
       />
+      <Layout />
+      <Box display="flex" flexDir="column" justifyContent="center" alignItems="center">
       <div className="cardContainer">
         {Quiz.map((character, index) => (
           <TinderCard
@@ -83,52 +89,50 @@ function Tindercard({Quiz}) {
               style={{ backgroundImage: "url(" + character.imgURL + ")" }}
               className="card"
             ></div>
-            <h3 style={{ color:"rgba(155, 155, 155)" }}>{character.role}</h3>
+            <Text textAlign="center" fontWeight="500" fontSize="24px">{character.answer}</Text>
           </TinderCard>
         ))}
       </div>
 
-      <div className="buttons">
-        <button
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            backgroundColor: !canSwipe && "#c3c4d3",
-          }}
+      <Box mt="25px" display="flex" flexDir="row">
+        <Button
+          m="20px"
+          h="60px"
+          w="120px"
+          bgColor="#BFC8EA"
+          isDisabled={!canSwipe && true}
           onClick={() => swipe("left")}
         >
           <HiOutlineArrowNarrowLeft />
           know
-        </button>
-        <button
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            backgroundColor: !canGoBack && "#c3c4d3",
-          }}
+        </Button>
+        <Button
+          m="20px"
+          h="60px"
+          w="120px"
+          bgColor="#BFC8EA"
+          isDisabled={!canGoBack && "#c3c4d3"}
           onClick={() => goBack()}
         >
-          <HiOutlineRefresh/>
+          <HiOutlineRefresh />
           Go Back
-        </button>
-        
+        </Button>
+
         {/* <button style={{ backgroundColor: !canGoBack && '#c3c4d3' }} onClick={() => goBack()}>Undo swipe!</button> */}
-        <button
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            backgroundColor: !canSwipe && "#c3c4d3",
-          }}
+        <Button
+          m="20px"
+          h="60px"
+          w="150px"
+          bgColor="#BFC8EA"
+          isDisabled={!canSwipe && "#c3c4d3"}
           onClick={() => swipe("right")}
         >
-          <HiOutlineArrowNarrowRight />
           Don't know
-        </button>
-      </div>
-    </div>
+          <HiOutlineArrowNarrowRight />
+        </Button>
+      </Box>
+      </Box>
+    </>
   );
 }
 

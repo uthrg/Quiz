@@ -1,73 +1,74 @@
-import React, { useState, useCallback } from "react";
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DndProvider } from "react-dnd";
-import { ChakraProvider } from '@chakra-ui/react'
+import { ChakraProvider } from "@chakra-ui/react";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import update from 'immutability-helper';
-
 
 import "./App.css";
 import sound from "./jfk.wav";
-import Advance from "./examples/tinderCard/Advance";
 import Tindercard from "./examples/tinderCard";
-import TextToSpeech from "./examples/Voice/TextToSpeech";
-import AudioABC from "./examples/Voice";
-// import PictureABC from "./examples/PictureABC";
-import SpellWord from "./examples/SpellVocabulary";
-import DragDrop from "./examples/VocabularyDnD";
+import AudioABC from "./examples/Audio";
+import DragDrop from "./examples/DragDropWord";
+import Record from "./examples/RecordChallenge";
+import Layout from "./examples/Layout";
 
 const jfk = new Audio(sound);
 
 const Quiz = [
   {
     id: 1,
-    role: "Chiikawa",
-    answer: "abc",  //ちいかわ
+    role: "míng tài zǐ guī yú",
+    answer: "明太子鮭魚",
     audioUrl: jfk,
-    imgURL: "images/Chiikawa_main.jpg",
+    imgURL: "images/ricerolls_434.png",
   },
   {
     id: 2,
-    role: "Usagi",
-    answer: "うさぎ",
+    role: "yù xuǎn ròu sōng",
+    answer: "御選肉鬆",
     audioUrl: jfk,
-    imgURL: "images/Usagi_main.webp",
+    imgURL: "images/ricerolls_399.png",
   },
   {
     id: 3,
-    role: "Hachi",
-    answer: "ハチワレ",
+    role: "guī yú guī yú luǎn",
+    answer: "鮭魚鮭魚卵",
     audioUrl: jfk,
-    imgURL: "images/Hachi_main.webp",
+    imgURL: "images/ricerolls_419.png",
   },
   {
     id: 4,
-    role: "Shisa",
-    answer: "シーサー",
+    role: "zhì shāo sōng bǎn zhū",
+    answer: "炙燒松阪豬",
     audioUrl: jfk,
-    imgURL: "images/susa.webp",
+    imgURL: "images/ricerolls_430.png",
   },
 ];
 
 const AllOptions = [
-  "ちいかわ",
-  "うさぎ",
-  "ハチワレ",
-  "モモンガ",
-  "シーサー",
-  "ラッコ",
+  "雞肉飯",
+  "御選肉鬆",
+  "鮭魚鮭魚卵",
+  "泡菜燒肉",
+  "炙燒松阪豬",
+  "明太子鮭魚",
 ];
 
 const App = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <ChakraProvider>
-      <div className="app">
-        {/* <Tindercard Quiz={Quiz}/> */}
-        {/* <AudioABC Quiz={Quiz} AllOptions={AllOptions} setWrongAnswers={setWrongAnswers}/> */}
-        {/* <PictureABC Quiz={Quiz} setWrongAnswers={setWrongAnswers}/> */}
-        {/* <SpellWord Quiz={Quiz}/> */}
-        <DragDrop Quiz={Quiz} />
-      </div>
+        <div className="app">
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout></Layout>}></Route>
+              <Route path="/Tinder" element={<Tindercard Quiz={Quiz}/>}></Route>
+              <Route path="/AudioABC" element={<AudioABC Quiz={Quiz} AllOptions={AllOptions}/>}></Route>
+              <Route path="/DragDrop" element={<DragDrop Quiz={Quiz}/>}></Route>
+              <Route path="/Record" element={<Record Quiz={Quiz}/>}></Route>
+            </Routes>
+          </BrowserRouter>
+        </div>
       </ChakraProvider>
     </DndProvider>
   );
