@@ -1,25 +1,38 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button, useToast, Box } from "@chakra-ui/react";
 import update from "immutability-helper";
 import Card from "./Card";
 import Layout from "../Layout";
 import { nanoid } from "nanoid";
+import { Navigate } from "react-router-dom";
 
-function DragDrop({ Quiz }) {
-  const [alphabet, setAlphabet] = useState([]);
-  const [correctAnswer, setCorrectAnswer] = useState([]);
+function DragDrop({ Quiz, gameRecord, setGameRecord }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  const [alphabet, setAlphabet] = useState([]);
+  const [previousQuestion, ]= useState(gameRecord.game2?.mistakeValue || [])
+  const [question, setQuestion] = useState(Quiz.filter((prev)=> previousQuestion.includes(prev.answer)))
+  const [correctAnswer, setCorrectAnswer] = useState([]);
   const toast = useToast();
 
   useEffect(() => {
-    if (currentIndex + 1 === Quiz[currentIndex].id) {
-      const currentWord = Quiz[currentIndex].answer.split("");
+    if (question.length <= 2) {
+      const remainingQuestions = Quiz.filter(
+        (prev) => !question.includes(prev)
+      );
+      const randomQuestion = remainingQuestions.sort(()=>Math.random() * remainingQuestions.length) 
+      const chooseQuestion = randomQuestion.slice(0, 3-question.length)
+      setQuestion([...question, ...chooseQuestion]);
+    }
+  }, []);
+
+  useEffect(()=>{
+    if (question[currentIndex]) {
+      const currentWord = question[currentIndex].answer.split("");
       setCorrectAnswer([...currentWord]);
       const shuffled = currentWord.sort(() => Math.random() - 0.5);
       setAlphabet(shuffled.map((char) => ({ id: nanoid(), char })));
     }
-  }, [currentIndex]);
+  },[currentIndex])
 
   const moveWord = useCallback((dragIndex, hoverIndex) => {
     setAlphabet((prevWord) =>
@@ -38,27 +51,51 @@ function DragDrop({ Quiz }) {
       .map((char) => char.char)
       .join("")
       .trim();
-    // console.log(" Quiz.answer", Quiz[currentIndex].answer);
-    // console.log(" userAnswer", userAnswer);
-    const isCorrect = userAnswer === Quiz[currentIndex].answer;
+    const isCorrect = userAnswer === question[currentIndex].answer;
+    if(!isCorrect){
+      setGameRecord((prev) => ({
+        ...prev,
+        game3: {
+          mistakeValue: [...(prev.game1.mistakeValue || []), question[currentIndex].answer],
+          isComplete: false,
+        },
+      }));
+    }
 
     toast({
-      position: "top",
       title: isCorrect
         ? "Correct"
-        : `Correct answer: ${Quiz[currentIndex].answer}`,
+        : `Correct answer: ${question[currentIndex].answer}`,
       status: isCorrect ? "success" : "error",
       duration: 2000,
       isClosable: true,
     });
+
+
     setTimeout(() => {
-      if (currentIndex + 1 < Quiz.length) {
+      if (currentIndex + 1 < question.length) {
         setCurrentIndex((prevIndex) => prevIndex + 1);
         setCorrectAnswer([]);
         setAlphabet([]);
       }
+      if(currentIndex + 1 === question.length){
+        setGameRecord((prevState) => ({
+          ...prevState,
+          game3: {
+            ...prevState.game3,
+            isComplete: true,
+          },
+        }));
+      }
     }, 2500);
   };
+
+  if (!gameRecord.game2.isComplete) {
+    return <Navigate to="/AudioABC" />;
+  }  
+  if (gameRecord.game3.isComplete) {
+    return <Navigate to="/Record" />;
+  }
 
   return (
     <>

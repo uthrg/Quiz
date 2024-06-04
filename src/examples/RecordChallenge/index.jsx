@@ -1,13 +1,28 @@
 import { AudioRecorder, useAudioRecorder } from "react-audio-voice-recorder";
-import { Button, Text, Box } from "@chakra-ui/react";
-import { useState } from "react";
+import { Button, Text, Box, useToast } from "@chakra-ui/react";
+import { useState, useEffect } from "react";
 import Layout from "../Layout";
+import { Navigate } from "react-router-dom";
 
-const RecordChallenge = ({ Quiz }) => {
-  const [step, setStep] = useState(0);
+const RecordChallenge = ({ Quiz, gameRecord, setGameRecord }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [comparisonResult, setComparisonResult] = useState(null);
-  const [isRecording, setIsRecording] = useState(false);
+  const [previousQuestion, ]= useState(gameRecord.game3?.mistakeValue || [])
+  const [question, setQuestion] = useState(Quiz.filter((prev)=> previousQuestion.includes(prev.answer)))
   const recorderControls = useAudioRecorder();
+  const toast = useToast()
+
+  useEffect(() => {
+    if (question.length <= 2) {
+      const remainingQuestions = Quiz.filter(
+        (prev) => !question.includes(prev)
+      );
+      const randomQuestion = remainingQuestions.sort(()=>Math.random() * remainingQuestions.length) 
+      const chooseQuestion = randomQuestion.slice(0, 3-question.length)
+      setQuestion([...question, ...chooseQuestion]);
+    }
+  }, []);
+
 
   const sendAudioForTranscription = async (audioBlob) => {
     const audioData = await blobToBase64(audioBlob);
@@ -59,7 +74,12 @@ const RecordChallenge = ({ Quiz }) => {
   };
 
   const compare = (userText) => {
-    let text = Quiz[step].answer;
+    const isCorrect = userText === question[currentIndex]?.answer;
+    if(!isCorrect){
+      setGameRecord((prev)=>({...prev, game4:{mistakeValue:[...(prev.game4.mistakeValue || []), question[currentIndex].answer], isComplete:false}}))
+    }
+
+    let text = question[currentIndex].answer;
     let userWord = userText.split("");
     let referenceWords = text.split("");
     const result = userWord.map((word, index) => {
@@ -81,15 +101,28 @@ const RecordChallenge = ({ Quiz }) => {
     return result;
   };
 
-  const handleRecordingStart = () => {
-    setIsRecording(true);
-    setComparisonResult(null);
-  };
+  // const handleRecordingStart = () => {
+  //   setIsRecording(true);
+  //   setComparisonResult(null);
+  // };
 
   const handleNextClick = () => {
-    setStep(step + 1);
-    setComparisonResult(null);
+    if(currentIndex+1 < question.length){
+      setCurrentIndex(currentIndex + 1);
+      setComparisonResult(null);
+    }else{
+      toast({
+        title: 'last!!',
+        status: 'info',
+        duration: 2000,
+        isClosable: true,
+      });
+    }
   };
+
+  if(!gameRecord.game3.isComplete){
+    return <Navigate to="/DragDrop"/>
+  }
 
   return (
     <Box>
@@ -102,7 +135,7 @@ const RecordChallenge = ({ Quiz }) => {
       >
         <Box display="flex" alignItems="center" justifyContent="center">
           <Text m="10px 20px" fontSize="40px" fontWeight="bold">
-            {Quiz[step].answer}
+            {question[currentIndex]?.answer}
           </Text>
           <AudioRecorder
             onRecordingComplete={(blob) => sendAudioForTranscription(blob)}
@@ -113,7 +146,7 @@ const RecordChallenge = ({ Quiz }) => {
         <Button
           m="20px"
           onClick={handleNextClick}
-          isDisabled={step + 1 >= Quiz.length}
+          isDisabled={currentIndex + 1 >= Quiz.length}
         >
           Next
         </Button>

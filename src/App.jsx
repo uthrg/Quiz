@@ -1,4 +1,5 @@
 import React from "react";
+import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DndProvider } from "react-dnd";
 import { ChakraProvider } from "@chakra-ui/react";
@@ -55,17 +56,57 @@ const AllOptions = [
 ];
 
 const App = () => {
+  const [gameRecord, setGameRecord] = useState({
+    game1: { mistakeValue: null, isComplete: false },
+    game2: { mistakeValue: null, isComplete: false },
+    game3: { mistakeValue: null, isComplete: false },
+    game4: { mistakeValue: null, isComplete: false },
+  });
+
   return (
     <DndProvider backend={HTML5Backend}>
       <ChakraProvider>
         <div className="app">
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Layout></Layout>}></Route>
-              <Route path="/Tinder" element={<Tindercard Quiz={Quiz}/>}></Route>
-              <Route path="/AudioABC" element={<AudioABC Quiz={Quiz} AllOptions={AllOptions}/>}></Route>
-              <Route path="/DragDrop" element={<DragDrop Quiz={Quiz}/>}></Route>
-              <Route path="/Record" element={<Record Quiz={Quiz}/>}></Route>
+              <Route path="/" element={<Layout />}></Route>
+              <Route
+                path="/Tinder"
+                element={
+                  <Tindercard Quiz={Quiz} gameRecord={gameRecord} setGameRecord={setGameRecord} />
+                }
+              ></Route>
+              <Route
+                path="/AudioABC"
+                element={
+                  <AudioABC
+                    Quiz={Quiz}
+                    AllOptions={AllOptions}
+                    gameRecord={gameRecord}
+                    setGameRecord={setGameRecord}
+                  />
+                }
+              ></Route>
+              <Route
+                path="/DragDrop"
+                element={
+                  <DragDrop
+                    Quiz={Quiz}
+                    gameRecord={gameRecord}
+                    setGameRecord={setGameRecord}
+                  />
+                }
+              ></Route>
+              <Route
+                path="/Record"
+                element={
+                  <Record
+                    Quiz={Quiz}
+                    gameRecord={gameRecord}
+                    setGameRecord={setGameRecord}
+                  />
+                }
+              ></Route>
             </Routes>
           </BrowserRouter>
         </div>
