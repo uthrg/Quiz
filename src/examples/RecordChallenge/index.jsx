@@ -3,26 +3,30 @@ import { Button, Text, Box, useToast } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import Layout from "../Layout";
 import { Navigate } from "react-router-dom";
+import axios from "axios";
 
 const RecordChallenge = ({ Quiz, gameRecord, setGameRecord }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [comparisonResult, setComparisonResult] = useState(null);
-  const [previousQuestion, ]= useState(gameRecord.game3?.mistakeValue || [])
-  const [question, setQuestion] = useState(Quiz.filter((prev)=> previousQuestion.includes(prev.answer)))
+  const [previousQuestion] = useState(gameRecord.game3?.mistakeValue || []);
+  const [question, setQuestion] = useState(
+    Quiz.filter((prev) => previousQuestion.includes(prev.answer))
+  );
   const recorderControls = useAudioRecorder();
-  const toast = useToast()
+  const toast = useToast();
 
   useEffect(() => {
     if (question.length <= 2) {
       const remainingQuestions = Quiz.filter(
         (prev) => !question.includes(prev)
       );
-      const randomQuestion = remainingQuestions.sort(()=>Math.random() * remainingQuestions.length) 
-      const chooseQuestion = randomQuestion.slice(0, 3-question.length)
+      const randomQuestion = remainingQuestions.sort(
+        () => Math.random() * remainingQuestions.length
+      );
+      const chooseQuestion = randomQuestion.slice(0, 3 - question.length);
       setQuestion([...question, ...chooseQuestion]);
     }
   }, []);
-
 
   const sendAudioForTranscription = async (audioBlob) => {
     const audioData = await blobToBase64(audioBlob);
@@ -36,28 +40,21 @@ const RecordChallenge = ({ Quiz, gameRecord, setGameRecord }) => {
     const audioFile = new Blob([bytes], { type: "audio/wav" });
     const formData = new FormData();
     formData.append("file", audioFile);
-    formData.append("model", "whisper-1");
-    formData.append("language", "zh");
+    
     try {
-      const response = await fetch(
-        "https://api.openai.com/v1/audio/transcriptions",
+      const response = await axios.post(
+        `http://localhost:5800/transcribe`,
+        formData,
         {
-          method: "POST",
-          headers: {
-            // Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
-          },
-          body: formData,
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
-
-      if (!response.ok) {
-        console.error("API response:", await response.json());
+      if (response.status === 200) {
+        const data = response.data;
+        console.log("Transcribed text:", data.transcription);
+        setComparisonResult(compare(data.transcription));
       } else {
-        const data = await response.json();
-        // setUserRecord(data.text)
-        setComparisonResult(compare(data.text));
-        console.log("Transcribed text:", data.text);
+        console.error("API response:", response.data);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -75,8 +72,17 @@ const RecordChallenge = ({ Quiz, gameRecord, setGameRecord }) => {
 
   const compare = (userText) => {
     const isCorrect = userText === question[currentIndex]?.answer;
-    if(!isCorrect){
-      setGameRecord((prev)=>({...prev, game4:{mistakeValue:[...(prev.game4.mistakeValue || []), question[currentIndex].answer], isComplete:false}}))
+    if (!isCorrect) {
+      setGameRecord((prev) => ({
+        ...prev,
+        game4: {
+          mistakeValue: [
+            ...(prev.game4.mistakeValue || []),
+            question[currentIndex].answer,
+          ],
+          isComplete: false,
+        },
+      }));
     }
 
     let text = question[currentIndex].answer;
@@ -107,21 +113,21 @@ const RecordChallenge = ({ Quiz, gameRecord, setGameRecord }) => {
   // };
 
   const handleNextClick = () => {
-    if(currentIndex+1 < question.length){
+    if (currentIndex + 1 < question.length) {
       setCurrentIndex(currentIndex + 1);
       setComparisonResult(null);
-    }else{
+    } else {
       toast({
-        title: 'last!!',
-        status: 'info',
+        title: "last!!",
+        status: "info",
         duration: 2000,
         isClosable: true,
       });
     }
   };
 
-  if(!gameRecord.game3.isComplete){
-    return <Navigate to="/DragDrop"/>
+  if (!gameRecord.game3.isComplete) {
+    return <Navigate to="/DragDrop" />;
   }
 
   return (
